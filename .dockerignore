@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+CLAUDE.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+

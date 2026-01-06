@@ -947,9 +947,6 @@
             <div class="editing-banner" id="editing-banner">
                 <span class="editing-banner-text" id="editing-banner-text">Редактирование: <span id="editing-track-name"></span></span>
                 <div class="editing-banner-actions">
-                    <button class="editing-banner-btn" id="editing-banner-time">Установить время начала</button>
-                    <button class="editing-banner-btn" id="editing-banner-elevations">Установить высоту точек</button>
-                    <button class="editing-banner-btn" id="editing-banner-reverse">Реверс</button>
                     <button class="editing-banner-close" id="editing-banner-close">Завершить редактирование</button>
                 </div>
             </div>
@@ -999,6 +996,7 @@
         <div class="more-menu-section">
             <div class="more-menu-section-title">Общие</div>
             <div class="more-menu-item" id="more-edit">Редактировать</div>
+            <div class="more-menu-item" id="more-focus">На карте</div>
             <div class="more-menu-item" id="more-start">К началу</div>
             <div class="more-menu-item" id="more-end">К концу</div>
         </div>
@@ -1010,8 +1008,19 @@
             <div class="more-menu-item" id="more-clone">Клонировать</div>
         </div>
         <div class="more-menu-section">
+            <div class="more-menu-section-title">Время</div>
+            <div class="more-menu-item" id="more-set-start-time">Установить время начала</div>
+            <div class="more-menu-item" id="more-clear-time">Очистить время</div>
+        </div>
+        <div class="more-menu-section">
+            <div class="more-menu-section-title">Высота</div>
+            <div class="more-menu-item" id="more-set-elevations">Установить высоту точек</div>
+            <div class="more-menu-item" id="more-clear-elevations">Очистить высоту</div>
+        </div>
+        <div class="more-menu-section">
             <div class="more-menu-section-title">Продвинутые</div>
             <div class="more-menu-item" id="more-generate">Генерация трека</div>
+            <div class="more-menu-item" id="more-reverse">Реверс</div>
             <div class="more-menu-item" id="more-segments">Удалить сегменты</div>
         </div>
         <div class="more-menu-section">
@@ -1201,45 +1210,7 @@
             }
         });
         
-        // Обработчики кнопок баннера редактирования
-        const editingBannerTime = document.getElementById('editing-banner-time');
-        const editingBannerElevations = document.getElementById('editing-banner-elevations');
-        
-        editingBannerTime.addEventListener('click', function() {
-            if (editingTrackIndex !== null) {
-                const trackIndex = editingTrackIndex;
-                // Функция setTrackStartTime сама сохранит изменения из маркеров редактирования
-                setTrackStartTime(trackIndex);
-            }
-        });
-        
-        editingBannerElevations.addEventListener('click', function() {
-            if (editingTrackIndex !== null) {
-                const trackIndex = editingTrackIndex;
-                // Функция setTrackElevations сама сохранит изменения из маркеров редактирования
-                setTrackElevations(trackIndex);
-            }
-        });
-        
-        const editingBannerReverse = document.getElementById('editing-banner-reverse');
-        editingBannerReverse.addEventListener('click', function() {
-            if (editingTrackIndex !== null) {
-                const trackIndex = editingTrackIndex;
-                // Сохраняем изменения из маркеров редактирования перед реверсом
-                updateTrackGeoJSON(trackIndex);
-                // Отключаем редактирование перед реверсом
-                disableTrackEditing(trackIndex);
-                // Вызываем реверс
-                reverseTrack(trackIndex);
-                // Восстанавливаем режим редактирования после реверса
-                // Используем небольшую задержку, чтобы дать время updateMap() завершиться
-                setTimeout(() => {
-                    if (trackIndex < tracks.length && trackIndex < trackLayers.length) {
-                        enableTrackEditing(trackIndex);
-                    }
-                }, 100);
-            }
-        });
+        // Обработчики кнопок баннера редактирования удалены - функции перенесены в контекстное меню
         
         // Обработчики меню More
         document.getElementById('more-edit').addEventListener('click', function() {
@@ -1252,6 +1223,15 @@
                 } else {
                     enableTrackEditing(trackIndex);
                 }
+                hideMoreMenu();
+            }
+        });
+        
+        document.getElementById('more-focus').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                selectTrack(trackIndex);
+                focusOnTrack(trackIndex);
                 hideMoreMenu();
             }
         });
@@ -1305,6 +1285,61 @@
             }
         });
         
+        document.getElementById('more-set-start-time').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                setTrackStartTime(trackIndex);
+                hideMoreMenu();
+            }
+        });
+        
+        document.getElementById('more-clear-time').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                clearTrackTime(trackIndex);
+                hideMoreMenu();
+            }
+        });
+        
+        document.getElementById('more-set-elevations').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                setTrackElevations(trackIndex);
+                hideMoreMenu();
+            }
+        });
+        
+        document.getElementById('more-clear-elevations').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                clearTrackElevations(trackIndex);
+                hideMoreMenu();
+            }
+        });
+        
+        document.getElementById('more-reverse').addEventListener('click', function() {
+            if (currentMoreMenuTrackIndex !== null) {
+                const trackIndex = currentMoreMenuTrackIndex;
+                // Сохраняем состояние редактирования перед реверсом
+                const wasEditing = editingTrackIndex === trackIndex;
+                // Если трек в режиме редактирования, сохраняем изменения из маркеров перед реверсом
+                if (wasEditing) {
+                    updateTrackGeoJSON(trackIndex);
+                    disableTrackEditing(trackIndex);
+                }
+                reverseTrack(trackIndex);
+                // Восстанавливаем режим редактирования после реверса, если он был активен
+                if (wasEditing) {
+                    setTimeout(() => {
+                        if (trackIndex < tracks.length && trackIndex < trackLayers.length) {
+                            enableTrackEditing(trackIndex);
+                        }
+                    }, 100);
+                }
+                hideMoreMenu();
+            }
+        });
+        
         document.getElementById('more-segments').addEventListener('click', function() {
             if (currentMoreMenuTrackIndex !== null) {
                 mergeTrackSegments(currentMoreMenuTrackIndex);
@@ -1331,224 +1366,7 @@
             }
         });
         
-        // Контекстное меню для строк таблицы
-        let trackContextMenu = null;
-        let currentTrackContextIndex = null;
-        
-        // Функция создания контекстного меню для трека
-        function createTrackContextMenu() {
-            if (trackContextMenu) {
-                document.body.removeChild(trackContextMenu);
-            }
-            
-            trackContextMenu = document.createElement('div');
-            trackContextMenu.className = 'context-menu';
-            trackContextMenu.id = 'track-context-menu';
-            trackContextMenu.innerHTML = `
-                <div class="context-menu-item" id="track-edit">Редактировать</div>
-                <div class="context-menu-item" id="track-focus">На карте</div>
-                <div class="context-menu-item" id="track-focus-start">К началу</div>
-                <div class="context-menu-item" id="track-focus-end">К концу</div>
-                <div class="context-menu-item" id="track-rename">Переименовать</div>
-                <div class="context-menu-item" id="track-save">Сохранить</div>
-                <div class="context-menu-item" id="track-save-garmin">Сохранить (Garmin)</div>
-                <div class="context-menu-item" id="track-clone">Клонировать</div>
-                <div class="context-menu-item" id="track-generate">Генерация трека</div>
-                <div class="context-menu-item" id="track-reverse">Реверс</div>
-                <div class="context-menu-item" id="track-set-start-time">Установить время начала</div>
-                <div class="context-menu-item" id="track-set-elevations">Установить высоту точек</div>
-                <div class="context-menu-item" id="track-merge-segments">Удалить сегменты</div>
-                <div class="context-menu-item delete" id="track-delete">Удалить</div>
-            `;
-            document.body.appendChild(trackContextMenu);
-            
-            // Обработчики пунктов меню
-            document.getElementById('track-edit').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    if (editingTrackIndex === trackIndex) {
-                        // Сохраняем GeoJSON перед выходом из режима редактирования
-                        updateTrackGeoJSON(trackIndex);
-                        disableTrackEditing(trackIndex);
-                        // Обновляем маркеры начала и конца после сохранения
-                        updateTrackMarkers(trackIndex);
-                    } else {
-                        enableTrackEditing(trackIndex);
-                    }
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-focus').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    selectTrack(trackIndex);
-                    focusOnTrack(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-focus-start').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    focusOnTrackStart(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-focus-end').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    focusOnTrackEnd(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-rename').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    renameTrack(currentTrackContextIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-save').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    saveTrackToFile(currentTrackContextIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-save-garmin').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    saveTrackToGarminFile(currentTrackContextIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-clone').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    cloneTrack(currentTrackContextIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-generate').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    generateTrackFromTrack(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-reverse').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    reverseTrack(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-set-start-time').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    setTrackStartTime(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-set-elevations').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    setTrackElevations(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-merge-segments').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    mergeTrackSegments(trackIndex);
-                    hideTrackContextMenu();
-                }
-            });
-            
-            document.getElementById('track-delete').addEventListener('click', function() {
-                if (currentTrackContextIndex !== null) {
-                    const trackIndex = currentTrackContextIndex;
-                    if (confirm(`Удалить трек "${tracks[trackIndex].name}"?`)) {
-                        deleteTrack(trackIndex);
-                    }
-                    hideTrackContextMenu();
-                }
-            });
-        }
-        
-        // Функция показа контекстного меню для трека
-        function showTrackContextMenu(event, trackIndex) {
-            event.preventDefault();
-            event.stopPropagation();
-            currentTrackContextIndex = trackIndex;
-            
-            if (!trackContextMenu) {
-                createTrackContextMenu();
-            }
-            
-            // Обновляем текст кнопки редактирования
-            const editItem = document.getElementById('track-edit');
-            if (editingTrackIndex === trackIndex) {
-                editItem.textContent = 'Сохранить';
-            } else {
-                editItem.textContent = 'Редактировать';
-            }
-             
-            trackContextMenu.style.display = 'block';
-
-            const margin = 8;
-            // Используем clientX/clientY для position: fixed
-            const desiredLeft = event.clientX;
-            const desiredTop = event.clientY;
-            const menuWidth = trackContextMenu.offsetWidth;
-            const menuHeight = trackContextMenu.offsetHeight;
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-
-            // Корректируем позицию, чтобы меню не выходило за границы viewport
-            let adjustedLeft = desiredLeft;
-            if (desiredLeft + menuWidth + margin > viewportWidth) {
-                adjustedLeft = viewportWidth - menuWidth - margin;
-            }
-            adjustedLeft = Math.max(adjustedLeft, margin);
-
-            let adjustedTop = desiredTop;
-            if (desiredTop + menuHeight + margin > viewportHeight) {
-                adjustedTop = viewportHeight - menuHeight - margin;
-            }
-            adjustedTop = Math.max(adjustedTop, margin);
-
-            trackContextMenu.style.left = `${adjustedLeft}px`;
-            trackContextMenu.style.top = `${adjustedTop}px`;
-            
-            setTimeout(() => {
-                document.addEventListener('click', hideTrackContextMenuOnClick, true);
-            }, 0);
-        }
-        
-        // Обработчик клика для скрытия контекстного меню трека
-        function hideTrackContextMenuOnClick(event) {
-            if (trackContextMenu && !trackContextMenu.contains(event.target)) {
-                hideTrackContextMenu();
-                document.removeEventListener('click', hideTrackContextMenuOnClick, true);
-            }
-        }
-        
-        // Функция скрытия контекстного меню трека
-        function hideTrackContextMenu() {
-            if (trackContextMenu) {
-                trackContextMenu.style.display = 'none';
-            }
-            currentTrackContextIndex = null;
-            document.removeEventListener('click', hideTrackContextMenuOnClick, true);
-        }
+        // Контекстное меню трека удалено - все функции перенесены в меню More
         
         
         // Функция загрузки GPX файла
@@ -1630,6 +1448,28 @@
             const endMarkers = [];
             const averageSpeed = calculateTrackAverageSpeed(trackData);
             let speedLabelAttached = false;
+            
+            // Проверяем, есть ли высоты во всем треке
+            let hasAnyElevations = false;
+            features.forEach(feature => {
+                if (feature.properties && feature.properties.elevations) {
+                    const elevs = feature.properties.elevations;
+                    if (elevs.some(e => e !== null && e !== undefined && typeof e === 'number' && isFinite(e))) {
+                        hasAnyElevations = true;
+                    }
+                }
+            });
+            
+            // Проверяем, есть ли время во всем треке
+            let hasAnyTime = false;
+            features.forEach(feature => {
+                if (feature.properties && feature.properties.coordTimes) {
+                    const times = feature.properties.coordTimes;
+                    if (times.some(t => t !== null && t !== undefined && t !== '')) {
+                        hasAnyTime = true;
+                    }
+                }
+            });
 
             // Если нет features или они пустые, создаем пустую полилинию
             if (features.length === 0 || (features.length === 1 && features[0].geometry.coordinates.length === 0)) {
@@ -1748,9 +1588,13 @@
                         let tooltipText = 'Начало';
                         if (timeTooltip) {
                             tooltipText += ': ' + timeTooltip;
+                        } else if (!hasAnyTime) {
+                            tooltipText += '\n⚠️ Времени нет - необходимо добавить';
                         }
                         if (startElevation !== null && startElevation !== undefined) {
                             tooltipText += '\nВысота: ' + startElevation.toFixed(1) + ' м';
+                        } else if (!hasAnyElevations) {
+                            tooltipText += '\n⚠️ Высот нет - необходимо добавить';
                         }
                         
                         const startMarker = L.marker(coordinates[0], {
@@ -1783,9 +1627,13 @@
                         let tooltipText = 'Конец';
                         if (timeTooltip) {
                             tooltipText += ': ' + timeTooltip;
+                        } else if (!hasAnyTime) {
+                            tooltipText += '\n⚠️ Времени нет - необходимо добавить';
                         }
                         if (endElevation !== null && endElevation !== undefined) {
                             tooltipText += '\nВысота: ' + endElevation.toFixed(1) + ' м';
+                        } else if (!hasAnyElevations) {
+                            tooltipText += '\n⚠️ Высот нет - необходимо добавить';
                         }
                         
                         const endMarker = L.marker(coordinates[coordinates.length - 1], {
@@ -2457,18 +2305,17 @@
                     currentLatLngs.push(latlng);
                     polyline.setLatLngs(currentLatLngs);
                     
-                    // Добавляем текущее время для новой точки
-                        const currentTime = new Date().toISOString();
-                        const track = tracks[trackIndex];
-                        const feature = track.geoJson.features[0];
+                    // Инициализируем структуру для высоты (время не добавляем при рисовании нового трека)
+                    const track = tracks[trackIndex];
+                    const feature = track.geoJson.features[0];
                     if (feature) {
                         if (!feature.properties) {
                             feature.properties = {};
                         }
+                        // Не добавляем время при рисовании нового трека
                         if (!feature.properties.coordTimes) {
                             feature.properties.coordTimes = [];
                         }
-                        feature.properties.coordTimes.push(currentTime);
                         
                         // Инициализируем высоту, если её нет
                         if (!feature.properties.elevations) {
@@ -2528,6 +2375,27 @@
             
             // Создаем маркеры для каждой точки каждого слоя трека (если трек не пустой)
             if (!isEmpty) {
+                // Проверяем, есть ли высоты во всем треке
+                let hasAnyElevations = false;
+                let hasAnyTime = false;
+                const track = tracks[trackIndex];
+                if (track && track.geoJson && track.geoJson.features) {
+                    track.geoJson.features.forEach(feature => {
+                        if (feature.properties && feature.properties.elevations) {
+                            const elevs = feature.properties.elevations;
+                            if (elevs.some(e => e !== null && e !== undefined && typeof e === 'number' && isFinite(e))) {
+                                hasAnyElevations = true;
+                            }
+                        }
+                        if (feature.properties && feature.properties.coordTimes) {
+                            const times = feature.properties.coordTimes;
+                            if (times.some(t => t !== null && t !== undefined && t !== '')) {
+                                hasAnyTime = true;
+                            }
+                        }
+                    });
+                }
+                
                 finalLayers.forEach(layer => {
                 if (layer instanceof L.Polyline) {
                     let latlngs = layer.getLatLngs();
@@ -2542,7 +2410,6 @@
                     }
                     
                     // Получаем время и высоты точек из GeoJSON для нужного сегмента
-                    const track = tracks[trackIndex];
                     const featureIndex = (typeof layer.featureIndex === 'number' && layer.featureIndex >= 0) ? layer.featureIndex : 0;
                     const startOffset = typeof layer.startCoordIndex === 'number' ? layer.startCoordIndex : 0;
                     const feature = track.geoJson.features[featureIndex];
@@ -2569,12 +2436,18 @@
                         let tooltipText = '';
                         if (timeTooltip) {
                             tooltipText = timeTooltip;
+                        } else if (!hasAnyTime) {
+                            tooltipText = '⚠️ Времени нет - необходимо добавить';
                         }
                         if (pointElevation !== null && pointElevation !== undefined) {
                             if (tooltipText) {
                                 tooltipText += '\n';
                             }
                             tooltipText += `Высота: ${pointElevation.toFixed(1)} м`;
+                        } else if (!hasAnyElevations && tooltipText) {
+                            tooltipText += '\n⚠️ Высот нет - необходимо добавить';
+                        } else if (!hasAnyElevations && !tooltipText) {
+                            tooltipText = '⚠️ Высот нет - необходимо добавить';
                         }
                         
                         const marker = L.marker(latlng, {
@@ -2935,12 +2808,20 @@
                 const coordCount = coordinates.length;
                 
                 // Синхронизируем время
-                const coordTimes = normalizeArray(originalProps.coordTimes, coordCount, () => new Date().toISOString());
-                if (coordTimes && coordTimes.length > 0) {
-                    properties.coordTimes = coordTimes;
-                } else {
-                    delete properties.coordTimes;
+                // Если coordTimes пустой или отсутствует, не восстанавливаем его
+                if (originalProps.coordTimes && Array.isArray(originalProps.coordTimes) && originalProps.coordTimes.length > 0) {
+                    // Синхронизируем только существующие времена, не создаем новые
+                    const coordTimes = normalizeArray(originalProps.coordTimes, coordCount, null);
+                    // Сохраняем только если есть хотя бы одно валидное значение времени
+                    const hasValidTimes = coordTimes && coordTimes.some(t => t !== null && t !== undefined && t !== '');
+                    if (hasValidTimes) {
+                        properties.coordTimes = coordTimes;
+                    } else {
+                        // Если все времена null или пустые, удаляем coordTimes
+                        delete properties.coordTimes;
+                    }
                 }
+                // Если coordTimes отсутствует или пустой, просто не добавляем его (не восстанавливаем)
                 
                 // Синхронизируем высоты
                 let elevations = normalizeArray(originalProps.elevations, coordCount, null);
@@ -3008,6 +2889,28 @@
             
             const features = track.geoJson.features;
             
+            // Проверяем, есть ли высоты во всем треке
+            let hasAnyElevations = false;
+            features.forEach(feature => {
+                if (feature.properties && feature.properties.elevations) {
+                    const elevs = feature.properties.elevations;
+                    if (elevs.some(e => e !== null && e !== undefined && typeof e === 'number' && isFinite(e))) {
+                        hasAnyElevations = true;
+                    }
+                }
+            });
+            
+            // Проверяем, есть ли время во всем треке
+            let hasAnyTime = false;
+            features.forEach(feature => {
+                if (feature.properties && feature.properties.coordTimes) {
+                    const times = feature.properties.coordTimes;
+                    if (times.some(t => t !== null && t !== undefined && t !== '')) {
+                        hasAnyTime = true;
+                    }
+                }
+            });
+            
             features.forEach((feature, featureIndex) => {
                 if (feature.geometry && feature.geometry.type === 'LineString') {
                     const coordinates = feature.geometry.coordinates;
@@ -3029,9 +2932,13 @@
                             let tooltipText = 'Начало';
                             if (timeTooltip) {
                                 tooltipText += ': ' + timeTooltip;
+                            } else if (!hasAnyTime) {
+                                tooltipText += '\n⚠️ Времени нет - необходимо добавить';
                             }
                             if (startElevation !== null && startElevation !== undefined) {
                                 tooltipText += '\nВысота: ' + startElevation.toFixed(1) + ' м';
+                            } else if (!hasAnyElevations) {
+                                tooltipText += '\n⚠️ Высот нет - необходимо добавить';
                             }
                             
                             const startMarker = L.marker([lat, lon], {
@@ -3065,9 +2972,13 @@
                             let tooltipText = 'Конец';
                             if (timeTooltip) {
                                 tooltipText += ': ' + timeTooltip;
+                            } else if (!hasAnyTime) {
+                                tooltipText += '\n⚠️ Времени нет - необходимо добавить';
                             }
                             if (endElevation !== null && endElevation !== undefined) {
                                 tooltipText += '\nВысота: ' + endElevation.toFixed(1) + ' м';
+                            } else if (!hasAnyElevations) {
+                                tooltipText += '\n⚠️ Высот нет - необходимо добавить';
                             }
                             
                             const endMarker = L.marker([lat, lon], {
@@ -3541,13 +3452,24 @@
                     const elevationMin = Math.min(...elevationValues);
                     const elevationMax = Math.max(...elevationValues);
                     elevationText = `Высота: ср. ${elevationAvg.toFixed(0)} м (мин ${elevationMin.toFixed(0)} / макс ${elevationMax.toFixed(0)})`;
+                } else if (pointCount > 0) {
+                    elevationText = '⚠️ Высот нет - необходимо добавить';
+                }
+                
+                let timeText = '';
+                if (firstTimeText) {
+                    timeText = `Начало: ${firstTimeText}`;
+                } else if (hasTime) {
+                    timeText = 'Время: есть';
+                } else if (pointCount > 0) {
+                    timeText = '⚠️ Времени нет - необходимо добавить';
                 }
                 
                 const statsParts = [
                     `Точек: ${pointCount}`,
                     trackLength > 0 ? `Длина: ${lengthText} км${durationText ? ` (${durationText})` : ''}` : '',
                     elevationText,
-                    firstTimeText ? `Начало: ${firstTimeText}` : (hasTime ? 'Время: есть' : ''),
+                    timeText,
                     lastTimeText ? `Конец: ${lastTimeText}` : '',
                     [
                         avgSpeedText,
@@ -3580,8 +3502,7 @@
                         ${statsParts.map(text => `<div class="track-meta-item">${text}</div>`).join('')}
                     </div>
                     <div class="track-actions">
-                        <button class="track-action-btn" data-action="start" data-track-index="${index}">Начало</button>
-                        <button class="track-action-btn" data-action="end" data-track-index="${index}">Конец</button>
+                        <button class="track-action-btn" data-action="start" data-track-index="${index}">Перейти к началу</button>
                         <button class="track-action-btn more-btn" data-action="more" data-track-index="${index}">⋯</button>
                     </div>
                 `;
@@ -3590,6 +3511,16 @@
                 item.addEventListener('click', function(e) {
                     if (e.target.type === 'checkbox' || e.target.closest('.track-action-btn')) {
                         return;
+                    }
+                    // При клике на трек сразу активируем режим редактирования
+                    if (editingTrackIndex === index) {
+                        // Если трек уже в режиме редактирования, сохраняем и выходим
+                        updateTrackGeoJSON(index);
+                        disableTrackEditing(index);
+                        updateTrackMarkers(index);
+                    } else {
+                        // Активируем режим редактирования
+                        enableTrackEditing(index);
                     }
                     selectTrack(index);
                 });
@@ -5035,6 +4966,117 @@
             alert(statsMessage);
         }
         
+        // Функция очистки времени в треке
+        function clearTrackTime(trackIndex) {
+            if (trackIndex < 0 || trackIndex >= tracks.length) {
+                return;
+            }
+            
+            const track = tracks[trackIndex];
+            if (!track || !track.geoJson || !track.geoJson.features) {
+                return;
+            }
+            
+            // Если трек в режиме редактирования, сохраняем изменения из маркеров
+            const wasEditing = editingTrackIndex === trackIndex;
+            if (wasEditing) {
+                updateTrackGeoJSON(trackIndex);
+            }
+            
+            const features = track.geoJson.features;
+            
+            if (features.length === 0) {
+                alert('Трек пуст');
+                return;
+            }
+            
+            // Подтверждение действия
+            if (!confirm('Вы уверены, что хотите удалить все время из этого трека?')) {
+                return;
+            }
+            
+            // Удаляем время из всех features
+            features.forEach(feature => {
+                if (feature.properties) {
+                    // Очищаем массив coordTimes
+                    if (feature.properties.coordTimes) {
+                        feature.properties.coordTimes = [];
+                    }
+                }
+            });
+            
+            // Обновляем карту и таблицу
+            updateMap(trackIndex);
+            
+            // Сохраняем в sessionStorage
+            saveToSessionStorage();
+            
+            // Если трек был в режиме редактирования, пересоздаем маркеры редактирования
+            if (wasEditing && editingTrackIndex === trackIndex) {
+                disableTrackEditing(trackIndex);
+                enableTrackEditing(trackIndex);
+            }
+        }
+        
+        // Функция очистки высоты в треке
+        function clearTrackElevations(trackIndex) {
+            if (trackIndex < 0 || trackIndex >= tracks.length) {
+                return;
+            }
+            
+            const track = tracks[trackIndex];
+            if (!track || !track.geoJson || !track.geoJson.features) {
+                return;
+            }
+            
+            // Если трек в режиме редактирования, сохраняем изменения из маркеров
+            const wasEditing = editingTrackIndex === trackIndex;
+            if (wasEditing) {
+                updateTrackGeoJSON(trackIndex);
+            }
+            
+            const features = track.geoJson.features;
+            
+            if (features.length === 0) {
+                alert('Трек пуст');
+                return;
+            }
+            
+            // Подтверждение действия
+            if (!confirm('Вы уверены, что хотите удалить все высоты из этого трека?')) {
+                return;
+            }
+            
+            // Удаляем высоты из всех features
+            features.forEach(feature => {
+                if (feature.properties) {
+                    // Очищаем массив elevations
+                    if (feature.properties.elevations) {
+                        feature.properties.elevations = [];
+                    }
+                    // Также удаляем высоту из координат, если она там есть
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        feature.geometry.coordinates = feature.geometry.coordinates.map(coord => {
+                            // Оставляем только lon и lat, убираем высоту (третий элемент)
+                            return coord.slice(0, 2);
+                        });
+                    }
+                }
+            });
+            
+            // Обновляем карту и таблицу
+            updateMap(trackIndex);
+            
+            // Сохраняем в sessionStorage
+            saveToSessionStorage();
+            
+            // Если трек был в режиме редактирования, пересоздаем маркеры редактирования
+            if (wasEditing && editingTrackIndex === trackIndex) {
+                disableTrackEditing(trackIndex);
+                enableTrackEditing(trackIndex);
+            }
+        }
+        
         // Функция удаления трека
         function deleteTrack(trackIndex) {
             if (trackIndex < 0 || trackIndex >= tracks.length) {
@@ -5402,7 +5444,7 @@
     
     <!-- Footer Copy -->
     <div class="app-footer">
-        <strong>© 2026 Максим, TrackGPX</strong>
+        <strong>© 2026 Кудрявцев Максим, TrackGPX</strong>
         <small>Сервис для сопровождения и визуализации ЗМУ на GPS-треках</small>
     </div>
     
