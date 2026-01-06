@@ -10,8 +10,28 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --page-bg: #0d1628;
+            --surface: #ffffff;
+            --surface-muted: #f5f7fb;
+            --text: #0f172a;
+            --muted: #6b7280;
+            --accent: #0ea5e9;
+            --accent-strong: #0284c7;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: rgba(12, 18, 31, 0.12);
+            --shadow: 0 16px 40px rgba(10, 22, 50, 0.2);
+            --radius: 14px;
+            --header-height: 72px;
+            --panel-width: 360px;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -19,9 +39,11 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             height: 100vh;
             overflow: hidden;
+            background: var(--surface-muted);
+            color: var(--text);
         }
         
         /* Base Layout */
@@ -30,24 +52,25 @@
             height: 100vh;
             width: 100vw;
             overflow: hidden;
+            background: var(--page-bg);
         }
         
         #map {
             position: absolute;
-            top: 50px;
+            top: var(--header-height);
             left: 0;
             right: 0;
             bottom: 0;
             width: 100%;
-            height: calc(100vh - 50px);
+            height: calc(100vh - var(--header-height));
             transition: left 0.3s ease;
         }
         
         .app-container.drawer-open #map {
-            left: 320px;
+            left: var(--panel-width);
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .app-container.drawer-open #map {
                 left: 0;
             }
@@ -59,25 +82,61 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 50px;
-            background: white;
-            border-bottom: 1px solid #ddd;
+            height: var(--header-height);
+            background: linear-gradient(120deg, #0b1326 0%, #0d1d35 60%, #0f172a 100%);
+            color: #e5e7eb;
             z-index: 1000;
             display: flex;
             align-items: center;
-            padding: 0 10px;
-            gap: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 18px;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 10px 30px rgba(6, 12, 24, 0.45);
         }
         
-        .top-bar-left {
+        .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex: 1;
+            gap: 12px;
+            min-width: 0;
         }
         
-        .top-bar-right {
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0ea5e9, #22c55e);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.35);
+        }
+        
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        
+        .brand-title {
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            font-size: 16px;
+            color: #f8fafc;
+        }
+        
+        .brand-subtitle {
+            font-size: 12px;
+            color: rgba(248, 250, 252, 0.7);
+        }
+        
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .top-bar-meta {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -86,7 +145,7 @@
         .file-input-wrapper {
             position: relative;
             overflow: hidden;
-            display: inline-block;
+            display: inline-flex;
         }
         
         .file-input-wrapper input[type=file] {
@@ -94,89 +153,130 @@
             left: -9999px;
         }
         
-        .btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.08);
+            color: #f8fafc;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            font-size: 13px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
             white-space: nowrap;
         }
         
-        .btn-primary {
-            background: #007bff;
-            color: white;
+        .pill:hover {
+            border-color: rgba(255, 255, 255, 0.32);
+            background: rgba(255, 255, 255, 0.14);
         }
         
-        .btn-primary:hover {
-            background: #0056b3;
+        .pill-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            border-color: rgba(14, 165, 233, 0.6);
+            color: #0b1326;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.35);
         }
         
-        .btn-success {
-            background: #28a745;
-            color: white;
+        .pill-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(14, 165, 233, 0.45);
         }
         
-        .btn-success:hover {
-            background: #218838;
+        .pill-ghost {
+            border-color: rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
         }
         
-        .btn-danger {
-            background: #dc3545;
-            color: white;
+        .pill-ghost:hover {
+            border-color: rgba(255, 255, 255, 0.28);
         }
         
-        .btn-danger:hover {
-            background: #c82333;
+        .pill-soft {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
         }
         
-        .btn-danger:disabled {
-            background: #6c757d;
+        .pill-danger {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fecdd3;
+        }
+        
+        .pill-danger:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
         
-        .btn-icon {
-            background: transparent;
-            border: 1px solid #ddd;
-            padding: 6px 10px;
-            font-size: 14px;
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e5e7eb;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
         
-        .btn-icon:hover {
-            background: #f8f9fa;
+        .layer-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .layer-label {
+            font-size: 12px;
+            color: rgba(248, 250, 252, 0.7);
         }
         
         .layer-select {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
             font-size: 13px;
-            background: white;
+            background: rgba(15, 23, 42, 0.5);
+            color: #f8fafc;
             cursor: pointer;
+            min-width: 170px;
         }
         
-        .track-counter {
-            font-size: 12px;
-            color: #666;
-            padding: 0 8px;
+        .layer-select option {
+            color: #0f172a;
+        }
+        
+        .bar-divider {
+            width: 1px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.1);
         }
         
         /* Editing Banner */
         .editing-banner {
             position: fixed;
-            top: 50px;
+            top: var(--header-height);
             left: 0;
             right: 0;
-            height: 40px;
-            background: #ffc107;
-            color: #000;
+            height: 44px;
+            background: #f59e0b;
+            color: #0f172a;
             z-index: 999;
             display: none;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
         .editing-banner.show {
@@ -184,58 +284,61 @@
         }
         
         .editing-banner-text {
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
         }
         
         .editing-banner-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
         
         .editing-banner-btn {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.08);
             border: none;
-            padding: 4px 12px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 12px;
-            color: #000;
+            color: #0f172a;
+            font-weight: 700;
             transition: background 0.2s;
         }
         
         .editing-banner-btn:hover {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.16);
         }
         
         .editing-banner-close {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.08);
             border: none;
-            padding: 4px 12px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 12px;
+            font-weight: 700;
         }
         
         .editing-banner-close:hover {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.16);
         }
         
         /* Drawer */
         .drawer {
             position: fixed;
-            top: 50px;
+            top: var(--header-height);
             left: 0;
-            width: 320px;
-            height: calc(100vh - 50px);
-            background: white;
-            border-right: 1px solid #ddd;
+            width: var(--panel-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--surface);
+            border-right: 1px solid var(--border);
             z-index: 900;
             display: flex;
             flex-direction: column;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
-            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 16px rgba(0,0,0,0.15);
         }
         
         .drawer.open {
@@ -243,8 +346,8 @@
         }
         
         .drawer-header {
-            padding: 15px;
-            border-bottom: 1px solid #ddd;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -252,7 +355,13 @@
         
         .drawer-title {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .drawer-subtitle {
+            font-size: 12px;
+            color: var(--muted);
         }
         
         .drawer-close {
@@ -260,224 +369,137 @@
             border: none;
             font-size: 20px;
             cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
+            padding: 6px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 8px;
         }
         
         .drawer-close:hover {
-            background: #f8f9fa;
-            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.06);
         }
         
         .drawer-content {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 14px 14px 18px;
+            background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 35%);
         }
         
         /* Tracks List */
         .tracks-list {
             list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         
         .track-item {
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            margin-bottom: 8px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #ffffff;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
         }
         
         .track-item:hover {
-            background: #f8f9fa;
-            border-color: #ddd;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.09);
         }
         
         .track-item.selected {
-            background: #e3f2fd;
-            border-color: #007bff;
+            border-color: rgba(14, 165, 233, 0.5);
+            box-shadow: 0 12px 28px rgba(14, 165, 233, 0.15);
         }
         
         .track-item.editing {
-            background: #fff3cd;
-            border-color: #ffc107;
+            border-color: rgba(245, 158, 11, 0.6);
+            background: #fff7e6;
         }
         
         .track-item-header {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 10px;
         }
         
         .track-color-swatch {
-            width: 20px;
-            height: 3px;
-            border-radius: 2px;
+            width: 28px;
+            height: 4px;
+            border-radius: 4px;
             flex-shrink: 0;
         }
         
         .track-name {
             flex: 1;
-            font-weight: 500;
+            font-weight: 700;
             font-size: 14px;
+            color: var(--text);
         }
         
         .track-visibility-toggle {
             cursor: pointer;
-            padding: 4px;
+            padding: 6px;
         }
         
         .track-actions {
             display: flex;
-            gap: 4px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        
+        .track-meta {
+            margin: 6px 0 10px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        
+        .track-meta-item + .track-meta-item {
+            margin-top: 2px;
         }
         
         .track-action-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 11px;
-            background: #f8f9fa;
-            color: #333;
-            transition: background 0.2s;
+            font-size: 12px;
+            background: var(--surface-muted);
+            color: var(--text);
+            font-weight: 700;
+            transition: all 0.2s ease;
         }
         
         .track-action-btn:hover {
-            background: #e9ecef;
+            background: #e8eef9;
         }
         
         .track-action-btn.more-btn {
-            background: transparent;
-            font-size: 16px;
-            padding: 0 4px;
+            background: #0ea5e9;
+            color: #0b1326;
+            border-color: transparent;
+            box-shadow: 0 8px 18px rgba(14, 165, 233, 0.2);
         }
         
-        /* Track Details */
-        .track-details {
-            margin-top: 15px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            display: none;
-        }
-        
-        .track-details.show {
-            display: block;
-        }
-        
-        .track-details-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            padding: 6px;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            cursor: text;
-        }
-        
-        .track-details-name:focus {
-            outline: none;
-            border-color: #007bff;
-            background: white;
-        }
-        
-        .track-details-stats {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        
-        .track-details-stats-item {
-            margin-bottom: 4px;
-        }
-        
-        .track-details-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .track-details-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            text-align: left;
-            transition: background 0.2s;
-        }
-        
-        .track-details-btn.btn-focus {
-            background: #007bff;
-            color: white;
-        }
-        
-        .track-details-btn.btn-focus:hover {
-            background: #0056b3;
-        }
-        
-        .track-details-btn.btn-start {
-            background: #28a745;
-            color: white;
-        }
-        
-        .track-details-btn.btn-start:hover {
-            background: #218838;
-        }
-        
-        .track-details-btn.btn-end {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .track-details-btn.btn-end:hover {
-            background: #138496;
-        }
-        
-        .track-details-btn.btn-edit {
-            background: #ffc107;
-            color: #000;
-        }
-        
-        .track-details-btn.btn-edit:hover {
-            background: #e0a800;
-        }
-        
-        .track-details-btn.btn-export {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .track-details-btn.btn-export:hover {
-            background: #5a6268;
-        }
-        
-        .track-details-btn.btn-delete {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .track-details-btn.btn-delete:hover {
-            background: #c82333;
-        }
         
         /* More Menu */
         .more-menu {
-            position: absolute;
+            position: fixed;
             background: white;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             z-index: 10000;
             min-width: 200px;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
             display: none;
         }
         
@@ -523,7 +545,7 @@
         
         /* Context Menu (for editing markers) */
         .context-menu {
-            position: absolute;
+            position: fixed;
             background: white;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -532,6 +554,8 @@
             z-index: 10000;
             min-width: 150px;
             display: none;
+            max-height: calc(100vh - 16px);
+            overflow-y: auto;
         }
         
         .context-menu-item {
@@ -586,13 +610,13 @@
             font-size: 18px;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #333;
+            color: var(--text);
         }
         
         .modal-content {
             font-size: 14px;
             line-height: 1.6;
-            color: #666;
+            color: var(--muted);
             margin-bottom: 20px;
         }
         
@@ -614,28 +638,30 @@
         .modal-button {
             padding: 8px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 14px;
             transition: background 0.2s;
+            font-weight: 700;
         }
         
         .modal-button.primary {
-            background: #007bff;
-            color: white;
+            background: var(--accent);
+            color: #0b1326;
         }
         
         .modal-button.primary:hover {
-            background: #0056b3;
+            background: var(--accent-strong);
+            color: #0b1326;
         }
         
         .modal-button.secondary {
-            background: #6c757d;
-            color: white;
+            background: #e2e8f0;
+            color: #0f172a;
         }
         
         .modal-button.secondary:hover {
-            background: #5a6268;
+            background: #cbd5e1;
         }
         
         .modal-checkbox {
@@ -644,7 +670,7 @@
             align-items: center;
             gap: 8px;
             font-size: 12px;
-            color: #666;
+            color: var(--muted);
         }
 
         .track-speed-tooltip {
@@ -657,12 +683,159 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.15);
         }
         
+        /* Zero State */
+        .zero-state {
+            position: absolute;
+            top: var(--header-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 850;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(13, 22, 40, 0.75) 0%, rgba(13, 22, 40, 0.35) 35%, rgba(13, 22, 40, 0.15) 100%);
+        }
+        
+        .zero-state.show {
+            display: flex;
+        }
+        
+        .zero-card {
+            max-width: 620px;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.92) 100%);
+            border-radius: 20px;
+            padding: 22px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(14, 165, 233, 0.18);
+            pointer-events: auto;
+        }
+        
+        .zero-card h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        
+        .zero-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(14, 165, 233, 0.14);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .zero-lead {
+            color: var(--muted);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .zero-description {
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .zero-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        
+        .zero-steps {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        
+        .zero-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface-muted);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .zero-step span {
+            display: inline-flex;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            background: #0ea5e9;
+            color: #0b1326;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        
+        .app-footer {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 950;
+            background: rgba(15, 23, 42, 0.82);
+            color: #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            backdrop-filter: blur(4px);
+        }
+        
+        .app-footer small {
+            color: rgba(229, 231, 235, 0.8);
+        }
+        
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 1100px) {
+            :root {
+                --header-height: 112px;
+            }
+            
+            .top-bar {
+                flex-wrap: wrap;
+                align-items: flex-start;
+            }
+            
+            .top-bar-actions {
+                order: 3;
+                width: 100%;
+            }
+            
+            .top-bar-meta {
+                order: 2;
+            }
+            
+            .brand {
+                order: 1;
+            }
+        }
+        
+        @media (max-width: 900px) {
             .drawer {
                 width: 100%;
-                top: 0;
-                height: 100vh;
+                height: calc(100vh - var(--header-height));
                 z-index: 2000;
             }
             
@@ -670,8 +843,41 @@
                 z-index: 2001;
             }
             
+            .zero-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            :root {
+                --header-height: 128px;
+            }
+            
+            .top-bar-actions, .top-bar-meta {
+                width: 100%;
+            }
+            
+            .top-bar-meta {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            
+            .zero-card h1 {
+                font-size: 22px;
+            }
+            
+            .zero-card {
+                padding: 18px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .drawer {
+                top: var(--header-height);
+            }
+            
             .editing-banner {
-                top: 50px;
+                top: var(--header-height);
                 z-index: 1999;
                 height: auto;
                 min-height: 40px;
@@ -702,68 +908,92 @@
         }
     </style>
 </head>
-<body>
-    <div class="app-container">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-        <div class="file-input-wrapper">
-                    <label for="gpx-file" class="btn btn-primary">Загрузить GPX</label>
-            <input type="file" id="gpx-file" multiple accept=".gpx" />
-        </div>
-                <button class="btn btn-success" id="create-track-button">Создать трек</button>
-                <button class="btn btn-danger" id="clear-button" disabled>Очистить</button>
-                <select class="layer-select" id="layer-select">
-                    <option value="none">Нет</option>
-                    <option value="satellite">Спутник (Esri)</option>
-                    <option value="carto">CartoDB Positron</option>
-                    <option value="terrain">Рельеф (Stamen)</option>
-                </select>
-        </div>
-            <div class="top-bar-right">
-                <span class="track-counter" id="track-counter">Треков: 0</span>
-                <button class="btn btn-icon" id="tracks-toggle">Треки</button>
+    <body>
+        <div class="app-container">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="brand">
+                    <div class="brand-mark"></div>
+                    <div class="brand-text">
+                        <div class="brand-title">Track GPX</div>
+                        <div class="brand-subtitle">Работа с маршрутами офлайн</div>
+                    </div>
+                </div>
+                <div class="top-bar-actions">
+                    <div class="file-input-wrapper">
+                        <label for="gpx-file" class="pill pill-primary">Импорт GPX</label>
+                        <input type="file" id="gpx-file" multiple accept=".gpx" />
+                    </div>
+                    <button class="pill pill-ghost" id="create-track-button">Нарисовать маршрут ЗМС (Новый трек)</button>
+                    <div class="bar-divider" aria-hidden="true"></div>
+                    <div class="layer-group">
+                        <span class="layer-label">Слой</span>
+                        <select class="layer-select" id="layer-select">
+                            <option value="none">Нет</option>
+                            <option value="satellite">Спутник (Esri)</option>
+                            <option value="carto">CartoDB Positron</option>
+                            <option value="terrain">Рельеф (Stamen)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="top-bar-meta">
+                    <span class="chip" id="track-counter">0 треков</span>
+                    <button class="pill pill-soft" id="tracks-toggle">Список</button>
+                    <button class="pill pill-danger" id="clear-button" disabled>Очистить</button>
+                </div>
             </div>
-        </div>
-        
-        <!-- Editing Banner -->
-        <div class="editing-banner" id="editing-banner">
-            <span class="editing-banner-text" id="editing-banner-text">Редактирование: <span id="editing-track-name"></span></span>
-            <div class="editing-banner-actions">
-                <button class="editing-banner-btn" id="editing-banner-time">Установить время начала</button>
-                <button class="editing-banner-btn" id="editing-banner-elevations">Установить высоту точек</button>
-                <button class="editing-banner-btn" id="editing-banner-reverse">Реверс</button>
-                <button class="editing-banner-close" id="editing-banner-close">Завершить редактирование</button>
+            
+            <!-- Editing Banner -->
+            <div class="editing-banner" id="editing-banner">
+                <span class="editing-banner-text" id="editing-banner-text">Редактирование: <span id="editing-track-name"></span></span>
+                <div class="editing-banner-actions">
+                    <button class="editing-banner-btn" id="editing-banner-time">Установить время начала</button>
+                    <button class="editing-banner-btn" id="editing-banner-elevations">Установить высоту точек</button>
+                    <button class="editing-banner-btn" id="editing-banner-reverse">Реверс</button>
+                    <button class="editing-banner-close" id="editing-banner-close">Завершить редактирование</button>
+                </div>
             </div>
-        </div>
-        
-        <!-- Drawer -->
-        <div class="drawer" id="drawer">
-            <div class="drawer-header">
-                <div class="drawer-title">Треки</div>
-                <button class="drawer-close" id="drawer-close">×</button>
+            
+            <!-- Drawer -->
+            <div class="drawer" id="drawer">
+                <div class="drawer-header">
+                    <div>
+                        <div class="drawer-title">Треки</div>
+                        <div class="drawer-subtitle">Управляйте списком и деталями</div>
+                    </div>
+                    <button class="drawer-close" id="drawer-close">×</button>
+                </div>
+                <div class="drawer-content">
+                    <ul class="tracks-list" id="tracks-list"></ul>
+                </div>
             </div>
-            <div class="drawer-content">
-                <ul class="tracks-list" id="tracks-list"></ul>
-                <div class="track-details" id="track-details">
-                    <div class="track-details-name" id="track-details-name" contenteditable="true"></div>
-                    <div class="track-details-stats" id="track-details-stats"></div>
-                    <div class="track-details-actions">
-                        <button class="track-details-btn btn-start" id="track-details-start">К началу</button>
-                        <button class="track-details-btn btn-end" id="track-details-end">К концу</button>
-                        <button class="track-details-btn btn-edit" id="track-details-edit">Редактировать</button>
-                        <button class="track-details-btn btn-export" id="track-details-export">Экспорт</button>
-                        <button class="track-details-btn btn-export" id="track-details-export-garmin">Garmin GPX</button>
-                        <button class="track-details-btn btn-delete" id="track-details-delete">Удалить</button>
+            
+            <!-- Zero State -->
+            <div class="zero-state" id="zero-state">
+                <div class="zero-card">
+                    <div class="zero-badge">Зимний маршрутный учёт</div>
+                    <h1>Сопровождение маршрутов ЗМУ</h1>
+                    <p class="zero-lead">Перетащите файл сюда или импортируйте его, чтобы увидеть трек на карте.</p>
+                    <p class="zero-description">
+                        Сервис предназначен для сопровождения и визуализации процесса зимнего маршрутного учёта (ЗМУ) в охотничьих угодьях на основе GPS-треков.
+                        Он помогает фиксировать, хранить и анализировать прохождение утверждённых маршрутов ЗМУ, включая подготовку маршрута (затирку) и последующий учёт, с привязкой к карте и наглядным отображением всех этапов.
+                    </p>
+                    <div class="zero-actions">
+                        <label for="gpx-file" class="pill pill-primary">Шаг 1: Загрузить готовый маршрут ЗМС</label>
+                        <button class="pill pill-primary" id="zero-create-track">Шаг 1: Нарисовать маршрут ЗМС (Новый трек)</button>
+                    </div>
+                    <div class="zero-steps">
+                        <div class="zero-step"><span>1</span>Импортируйте GPX маршрута или нарисуйте его на карте</div>
+                        <div class="zero-step"><span>2</span>Отмечайте этапы: затирку и учёт с привязкой ко времени</div>
+                        <div class="zero-step"><span>3</span>Экспортируйте итоговый трек для анализа и отчётов</div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Map -->
+            <div id="map"></div>
         </div>
         
-        <!-- Map -->
-        <div id="map"></div>
-    </div>
-    
     <!-- More Menu -->
     <div class="more-menu" id="more-menu">
         <div class="more-menu-section">
@@ -891,13 +1121,8 @@
         const editingBanner = document.getElementById('editing-banner');
         const editingBannerText = document.getElementById('editing-banner-text');
         const editingBannerClose = document.getElementById('editing-banner-close');
-        const trackDetailsName = document.getElementById('track-details-name');
-        const trackDetailsStart = document.getElementById('track-details-start');
-        const trackDetailsEnd = document.getElementById('track-details-end');
-        const trackDetailsEdit = document.getElementById('track-details-edit');
-        const trackDetailsExport = document.getElementById('track-details-export');
-        const trackDetailsExportGarmin = document.getElementById('track-details-export-garmin');
-        const trackDetailsDelete = document.getElementById('track-details-delete');
+        const zeroState = document.getElementById('zero-state');
+        const zeroCreateTrackButton = document.getElementById('zero-create-track');
         
         // Безопасное экранирование текста для вставки в HTML
         function escapeHtml(text) {
@@ -948,10 +1173,14 @@
         
         // Обработчики drawer
         const appContainer = document.querySelector('.app-container');
+        let drawerAutoOpened = false;
         tracksToggle.addEventListener('click', function() {
             drawer.classList.toggle('open');
             if (appContainer) {
                 appContainer.classList.toggle('drawer-open');
+            }
+            if (drawer.classList.contains('open')) {
+                drawerAutoOpened = true;
             }
         });
         
@@ -1009,81 +1238,6 @@
                         enableTrackEditing(trackIndex);
                     }
                 }, 100);
-            }
-        });
-        
-        // Обработчики деталей трека
-        trackDetailsName.addEventListener('blur', function() {
-            if (selectedTrackIndex !== null) {
-                const newName = this.textContent.trim();
-                if (newName && newName !== tracks[selectedTrackIndex].name) {
-                    const existingIndex = tracks.findIndex((track, index) => 
-                        index !== selectedTrackIndex && track.name === newName
-                    );
-                    if (existingIndex === -1) {
-                        tracks[selectedTrackIndex].name = newName;
-                        saveToSessionStorage();
-                        updateTracksTable();
-                    } else {
-                        alert('Трек с таким именем уже существует');
-                        this.textContent = tracks[selectedTrackIndex].name;
-                    }
-                } else if (!newName) {
-                    this.textContent = tracks[selectedTrackIndex].name;
-                }
-            }
-        });
-        
-        trackDetailsStart.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                focusOnTrackStart(selectedTrackIndex);
-            }
-        });
-        
-        trackDetailsEnd.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                focusOnTrackEnd(selectedTrackIndex);
-            }
-        });
-        
-        trackDetailsEdit.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                const trackIndex = selectedTrackIndex;
-                if (editingTrackIndex === trackIndex) {
-                    updateTrackGeoJSON(trackIndex);
-                    disableTrackEditing(trackIndex);
-                    updateTrackMarkers(trackIndex);
-                } else {
-                    enableTrackEditing(trackIndex);
-                }
-            }
-        });
-        
-        trackDetailsExport.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                saveTrackToFile(selectedTrackIndex);
-            }
-        });
-        
-        trackDetailsExportGarmin.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                saveTrackToGarminFile(selectedTrackIndex);
-            }
-        });
-        
-        trackDetailsDelete.addEventListener('click', function() {
-            if (selectedTrackIndex !== null) {
-                const trackIndex = selectedTrackIndex;
-                if (editingTrackIndex !== null) {
-                    if (!confirm('Вы редактируете трек. Удаление завершит редактирование. Продолжить?')) {
-                        return;
-                    }
-                }
-                if (confirm(`Удалить трек "${tracks[trackIndex].name}"?`)) {
-                    deleteTrack(trackIndex);
-                    selectedTrackIndex = null;
-                    updateTracksTable();
-                }
             }
         });
         
@@ -1228,18 +1382,7 @@
             document.getElementById('track-focus').addEventListener('click', function() {
                 if (currentTrackContextIndex !== null) {
                     const trackIndex = currentTrackContextIndex;
-                    const row = tableBody.querySelector(`tr[data-track-index="${trackIndex}"]`);
-                    
-                    const previousSelected = tableBody.querySelector('tr.selected');
-                    if (previousSelected) {
-                        previousSelected.classList.remove('selected');
-                    }
-                    
-                    if (row) {
-                        row.classList.add('selected');
-                        selectedTrackIndex = trackIndex;
-                    }
-                    
+                    selectTrack(trackIndex);
                     focusOnTrack(trackIndex);
                     hideTrackContextMenu();
                 }
@@ -1357,10 +1500,33 @@
             } else {
                 editItem.textContent = 'Редактировать';
             }
-            
+             
             trackContextMenu.style.display = 'block';
-            trackContextMenu.style.left = event.pageX + 'px';
-            trackContextMenu.style.top = event.pageY + 'px';
+
+            const margin = 8;
+            // Используем clientX/clientY для position: fixed
+            const desiredLeft = event.clientX;
+            const desiredTop = event.clientY;
+            const menuWidth = trackContextMenu.offsetWidth;
+            const menuHeight = trackContextMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Корректируем позицию, чтобы меню не выходило за границы viewport
+            let adjustedLeft = desiredLeft;
+            if (desiredLeft + menuWidth + margin > viewportWidth) {
+                adjustedLeft = viewportWidth - menuWidth - margin;
+            }
+            adjustedLeft = Math.max(adjustedLeft, margin);
+
+            let adjustedTop = desiredTop;
+            if (desiredTop + menuHeight + margin > viewportHeight) {
+                adjustedTop = viewportHeight - menuHeight - margin;
+            }
+            adjustedTop = Math.max(adjustedTop, margin);
+
+            trackContextMenu.style.left = `${adjustedLeft}px`;
+            trackContextMenu.style.top = `${adjustedTop}px`;
             
             setTimeout(() => {
                 document.addEventListener('click', hideTrackContextMenuOnClick, true);
@@ -1708,15 +1874,38 @@
             event.preventDefault();
             event.stopPropagation();
             currentEditingMarker = markerData;
-            
+
             if (!contextMenu) {
                 createContextMenu();
             }
-            
+
             contextMenu.style.display = 'block';
-            contextMenu.style.left = event.pageX + 'px';
-            contextMenu.style.top = event.pageY + 'px';
-            
+
+            const margin = 8;
+            // Используем clientX/clientY для position: fixed
+            const desiredLeft = event.clientX;
+            const desiredTop = event.clientY;
+            const menuWidth = contextMenu.offsetWidth;
+            const menuHeight = contextMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // Корректируем позицию, чтобы меню не выходило за границы viewport
+            let adjustedLeft = desiredLeft;
+            if (desiredLeft + menuWidth + margin > viewportWidth) {
+                adjustedLeft = viewportWidth - menuWidth - margin;
+            }
+            adjustedLeft = Math.max(adjustedLeft, margin);
+
+            let adjustedTop = desiredTop;
+            if (desiredTop + menuHeight + margin > viewportHeight) {
+                adjustedTop = viewportHeight - menuHeight - margin;
+            }
+            adjustedTop = Math.max(adjustedTop, margin);
+
+            contextMenu.style.left = `${adjustedLeft}px`;
+            contextMenu.style.top = `${adjustedTop}px`;
+
             // Добавляем обработчик клика вне меню для его скрытия
             setTimeout(() => {
                 document.addEventListener('click', hideContextMenuOnClick, true);
@@ -2920,22 +3109,6 @@
         function updateEditButton(trackIndex, isActive) {
             // Обновляем таблицу для отображения значка редактирования
             updateTracksTable();
-            
-            // Также обновляем кнопку в контекстном меню, если оно открыто
-            const tableBody = document.getElementById('tracks-table-body');
-            const row = tableBody.querySelector(`tr[data-track-index="${trackIndex}"]`);
-            if (row) {
-                const editButton = row.querySelector('.edit-button');
-                if (editButton) {
-                    if (isActive) {
-                        editButton.classList.add('active');
-                        editButton.textContent = 'Сохранить';
-                    } else {
-                        editButton.classList.remove('active');
-                        editButton.textContent = 'Редактировать';
-                    }
-                }
-            }
         }
         
         // Функция обновления карты
@@ -3232,15 +3405,38 @@
         function updateTracksTable() {
             const tracksList = document.getElementById('tracks-list');
             const trackCounter = document.getElementById('track-counter');
-            const trackDetails = document.getElementById('track-details');
+            const hasTracks = tracks.length > 0;
             
             // Обновляем счетчик
-            trackCounter.textContent = `Треков: ${tracks.length}`;
+            if (trackCounter) {
+                trackCounter.textContent = tracks.length === 1 ? '1 трек' : `${tracks.length} треков`;
+            }
+            
+            if (zeroState) {
+                zeroState.classList.toggle('show', !hasTracks);
+            }
+            
+            if (clearButton) {
+                clearButton.disabled = !hasTracks;
+            }
+            
+            if (!hasTracks) {
+                drawerAutoOpened = false;
+                drawer.classList.remove('open');
+                if (appContainer) {
+                    appContainer.classList.remove('drawer-open');
+                }
+            } else if (!drawerAutoOpened) {
+                drawer.classList.add('open');
+                if (appContainer) {
+                    appContainer.classList.add('drawer-open');
+                }
+                drawerAutoOpened = true;
+            }
             
             tracksList.innerHTML = '';
             
-            if (tracks.length === 0) {
-                trackDetails.classList.remove('show');
+            if (!hasTracks) {
                 return;
             }
             
@@ -3252,15 +3448,113 @@
                 
                 // Подсчет количества точек
                 let pointCount = 0;
+                const elevationValues = [];
                 track.geoJson.features.forEach(feature => {
                     if (feature.geometry && feature.geometry.type === 'LineString') {
-                        pointCount += feature.geometry.coordinates.length;
+                        const coords = feature.geometry.coordinates;
+                        pointCount += coords.length;
+                        const elevs = feature.properties && feature.properties.elevations ? feature.properties.elevations : null;
+                        coords.forEach((coord, idx) => {
+                            let ele = null;
+                            if (elevs && typeof elevs[idx] === 'number' && isFinite(elevs[idx])) {
+                                ele = elevs[idx];
+                            } else if (coord.length > 2 && typeof coord[2] === 'number' && isFinite(coord[2])) {
+                                ele = coord[2];
+                            }
+                            if (ele !== null) {
+                                elevationValues.push(ele);
+                            }
+                        });
                     }
                 });
                 
                 // Вычисление длины трека
                 const trackLength = calculateTrackLength(track);
                 const lengthText = trackLength > 0 ? trackLength.toFixed(2) : '0.00';
+                
+                let hasTime = false;
+                let firstTimeText = '';
+                let lastTimeText = '';
+                let durationText = '';
+                const firstTimeStr = findFirstCoordTime(track.geoJson);
+                const lastTimeStr = findLastCoordTime(track.geoJson);
+                let minSpeed = null;
+                let maxSpeed = null;
+                if (firstTimeStr) {
+                    const d = new Date(firstTimeStr);
+                    if (!isNaN(d.getTime())) {
+                        firstTimeText = formatDateTimeWithTZ(d);
+                        hasTime = true;
+                    }
+                }
+                if (lastTimeStr) {
+                    const d = new Date(lastTimeStr);
+                    if (!isNaN(d.getTime())) {
+                        lastTimeText = formatDateTimeWithTZ(d);
+                        hasTime = true;
+                    }
+                }
+                
+                let avgSpeedText = '';
+                if (firstTimeStr && lastTimeStr) {
+                    const startDate = new Date(firstTimeStr);
+                    const endDate = new Date(lastTimeStr);
+                    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && endDate > startDate) {
+                        const durationHours = (endDate - startDate) / 3600000;
+                        if (durationHours > 0) {
+                            const totalMinutes = Math.floor(durationHours * 60);
+                            const hoursPart = Math.floor(totalMinutes / 60);
+                            const minutesPart = totalMinutes % 60;
+                            const durationParts = [];
+                            if (hoursPart > 0) {
+                                durationParts.push(`${hoursPart} ч.`);
+                            }
+                            durationParts.push(`${minutesPart} м.`);
+                            durationText = durationParts.join(' ');
+                        }
+                        if (durationHours > 0 && trackLength > 0) {
+                            const avgSpeed = trackLength / durationHours;
+                            avgSpeedText = `Ср. скорость: ${avgSpeed.toFixed(2)} км/ч`;
+                        }
+                    }
+                    
+                    // Минимальная и максимальная скорость по сегментам с временем
+                    track.geoJson.features.forEach(feature => {
+                        if (feature.geometry && feature.geometry.type === 'LineString' && feature.properties && feature.properties.coordTimes) {
+                            const coords = feature.geometry.coordinates;
+                            const coordTimes = feature.properties.coordTimes;
+                            for (let i = 1; i < coords.length && i < coordTimes.length; i++) {
+                                const speed = calculateSpeed(coords[i - 1], coords[i], coordTimes[i - 1], coordTimes[i]);
+                                if (speed !== null) {
+                                    if (minSpeed === null || speed < minSpeed) minSpeed = speed;
+                                    if (maxSpeed === null || speed > maxSpeed) maxSpeed = speed;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                let elevationText = '';
+                if (elevationValues.length > 0) {
+                    const elevationSum = elevationValues.reduce((acc, val) => acc + val, 0);
+                    const elevationAvg = elevationSum / elevationValues.length;
+                    const elevationMin = Math.min(...elevationValues);
+                    const elevationMax = Math.max(...elevationValues);
+                    elevationText = `Высота: ср. ${elevationAvg.toFixed(0)} м (мин ${elevationMin.toFixed(0)} / макс ${elevationMax.toFixed(0)})`;
+                }
+                
+                const statsParts = [
+                    `Точек: ${pointCount}`,
+                    trackLength > 0 ? `Длина: ${lengthText} км${durationText ? ` (${durationText})` : ''}` : '',
+                    elevationText,
+                    firstTimeText ? `Начало: ${firstTimeText}` : (hasTime ? 'Время: есть' : ''),
+                    lastTimeText ? `Конец: ${lastTimeText}` : '',
+                    [
+                        avgSpeedText,
+                        minSpeed !== null ? `Мин.: ${minSpeed.toFixed(2)} км/ч` : '',
+                        maxSpeed !== null ? `Макс.: ${maxSpeed.toFixed(2)} км/ч` : ''
+                    ].filter(Boolean).join(' • ')
+                ].filter(Boolean);
                 
                 const isVisible = trackVisibility[index] !== false;
                 const isEditing = editingTrackIndex === index;
@@ -3281,6 +3575,9 @@
                                data-track-index="${index}" 
                                ${isVisible ? 'checked' : ''}
                                onclick="event.stopPropagation()">
+                    </div>
+                    <div class="track-meta">
+                        ${statsParts.map(text => `<div class="track-meta-item">${text}</div>`).join('')}
                     </div>
                     <div class="track-actions">
                         <button class="track-action-btn" data-action="start" data-track-index="${index}">Начало</button>
@@ -3326,108 +3623,12 @@
             });
             
             // Обновляем детали выбранного трека
-            if (selectedTrackIndex !== null) {
-                updateTrackDetails(selectedTrackIndex);
-            }
         }
         
         // Функция выбора трека
         function selectTrack(trackIndex) {
             selectedTrackIndex = trackIndex;
             updateTracksTable();
-            updateTrackDetails(trackIndex);
-        }
-        
-        // Функция обновления деталей трека
-        function updateTrackDetails(trackIndex) {
-            const trackDetails = document.getElementById('track-details');
-            const trackDetailsName = document.getElementById('track-details-name');
-            const trackDetailsStats = document.getElementById('track-details-stats');
-            const trackDetailsEdit = document.getElementById('track-details-edit');
-            
-            if (trackIndex === null || trackIndex < 0 || trackIndex >= tracks.length) {
-                trackDetails.classList.remove('show');
-                return;
-            }
-            
-            const track = tracks[trackIndex];
-            trackDetails.classList.add('show');
-            trackDetailsName.textContent = track.name;
-            
-            // Подсчет статистики
-            let pointCount = 0;
-            track.geoJson.features.forEach(feature => {
-                if (feature.geometry && feature.geometry.type === 'LineString') {
-                    pointCount += feature.geometry.coordinates.length;
-                }
-            });
-            
-            const trackLength = calculateTrackLength(track);
-            const lengthText = trackLength > 0 ? trackLength.toFixed(2) : '0.00';
-            
-                let hasElevations = false;
-            let hasTime = false;
-            let firstTimeText = '';
-            let lastTimeText = '';
-            const firstTimeStr = findFirstCoordTime(track.geoJson);
-            const lastTimeStr = findLastCoordTime(track.geoJson);
-            if (firstTimeStr) {
-                const d = new Date(firstTimeStr);
-                if (!isNaN(d.getTime())) {
-                    firstTimeText = formatDateTimeWithTZ(d);
-                    hasTime = true;
-                }
-            }
-            if (lastTimeStr) {
-                const d = new Date(lastTimeStr);
-                if (!isNaN(d.getTime())) {
-                    lastTimeText = formatDateTimeWithTZ(d);
-                    hasTime = true;
-                }
-            }
-                track.geoJson.features.forEach(feature => {
-                    if (feature.properties && feature.properties.elevations) {
-                        const elevations = feature.properties.elevations;
-                        if (elevations.some(e => e !== null && e !== undefined)) {
-                            hasElevations = true;
-                        }
-                    }
-                    if (feature.properties && feature.properties.coordTimes) {
-                        const coordTimes = feature.properties.coordTimes;
-                        if (coordTimes.some(t => t !== null && t !== undefined && t !== '')) {
-                            hasTime = true;
-                        }
-                    }
-                });
-
-            // Средняя скорость (если есть время начала/конца)
-            let avgSpeedText = '';
-            if (firstTimeStr && lastTimeStr) {
-                const startDate = new Date(firstTimeStr);
-                const endDate = new Date(lastTimeStr);
-                if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime()) && endDate > startDate) {
-                    const hours = (endDate - startDate) / 3600000;
-                    if (hours > 0 && trackLength > 0) {
-                        const avgSpeed = trackLength / hours;
-                        avgSpeedText = `<div class="track-details-stats-item">Ср. скорость: ${avgSpeed.toFixed(2)} км/ч</div>`;
-                    }
-                }
-            }
-                
-            trackDetailsStats.innerHTML = `
-                <div class="track-details-stats-item">Точек: ${pointCount}</div>
-                ${trackLength > 0 ? `<div class="track-details-stats-item">Длина: ${lengthText} км</div>` : ''}
-                ${firstTimeText ? `<div class="track-details-stats-item">Начало: ${firstTimeText}</div>` : (hasTime ? '<div class="track-details-stats-item">Время: есть</div>' : '')}
-                ${lastTimeText ? `<div class="track-details-stats-item">Конец: ${lastTimeText}</div>` : ''}
-                ${avgSpeedText}
-            `;
-            
-            // Обновляем кнопку редактирования
-            if (editingTrackIndex === trackIndex) {
-                trackDetailsEdit.textContent = 'Завершить редактирование';
-            } else {
-                trackDetailsEdit.textContent = 'Редактировать';
-            }
         }
         
         // Функция показа меню More
@@ -3435,21 +3636,47 @@
         function showMoreMenu(event, trackIndex) {
             const moreMenu = document.getElementById('more-menu');
             const rect = event.target.getBoundingClientRect();
-            
+
             moreMenu.style.display = 'block';
-            moreMenu.style.left = rect.left + 'px';
-            moreMenu.style.top = (rect.bottom + 5) + 'px';
             moreMenu.classList.add('show');
             currentMoreMenuTrackIndex = trackIndex;
-            
+
             // Обновляем текст кнопки редактирования в меню
             const moreEdit = document.getElementById('more-edit');
-                if (editingTrackIndex === trackIndex) {
+            if (editingTrackIndex === trackIndex) {
                 moreEdit.textContent = 'Сохранить';
-                } else {
+            } else {
                 moreEdit.textContent = 'Редактировать';
             }
-            
+
+            // Корректируем позицию, чтобы меню не выходило за границы viewport
+            const margin = 8;
+            const menuWidth = moreMenu.offsetWidth;
+            const menuHeight = moreMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let desiredLeft = rect.left;
+            let desiredTop = rect.bottom + 5;
+
+            // Проверяем правую границу
+            if (desiredLeft + menuWidth + margin > viewportWidth) {
+                desiredLeft = viewportWidth - menuWidth - margin;
+            }
+            desiredLeft = Math.max(desiredLeft, margin);
+
+            // Проверяем нижнюю границу - если не помещается снизу, показываем сверху
+            if (desiredTop + menuHeight + margin > viewportHeight) {
+                desiredTop = rect.top - menuHeight - 5;
+                // Если и сверху не помещается, прижимаем к верху экрана
+                if (desiredTop < margin) {
+                    desiredTop = margin;
+                }
+            }
+
+            moreMenu.style.left = desiredLeft + 'px';
+            moreMenu.style.top = desiredTop + 'px';
+
             setTimeout(() => {
                 document.addEventListener('click', hideMoreMenuOnClick, true);
             }, 0);
@@ -4728,7 +4955,11 @@
                             const segmentDistance = calculateDistance(lat1, lon1, lat2, lon2);
 
                             // Вычисляем время для этого сегмента
-                            const segmentTime = (segmentDistance / averageSpeed) * 3600 * 1000; // В миллисекундах
+                            let segmentTime = (segmentDistance / averageSpeed) * 3600 * 1000; // В миллисекундах
+                            
+                            // Добавляем случайную погрешность ±15% для более реалистичного времени
+                            const variation = 1 + (Math.random() * 0.3 - 0.15); // От 0.85 до 1.15
+                            segmentTime = segmentTime * variation;
 
                             // Проверяем валидность currentTime перед добавлением
                             if (!currentTime || isNaN(currentTime.getTime())) {
@@ -5059,6 +5290,12 @@
             createEmptyTrack();
         });
         
+        if (zeroCreateTrackButton) {
+            zeroCreateTrackButton.addEventListener('click', function() {
+                createEmptyTrack();
+            });
+        }
+        
         // Обработчик кнопки очистки
         clearButton.addEventListener('click', function() {
             // Проверка на активное редактирование
@@ -5100,6 +5337,11 @@
             trackVisibility = [];
             selectedTrackIndex = null;
             editingTrackIndex = null;
+            drawerAutoOpened = false;
+            drawer.classList.remove('open');
+            if (appContainer) {
+                appContainer.classList.remove('drawer-open');
+            }
             
             // Очистка sessionStorage
             sessionStorage.removeItem('gpxTracks');
@@ -5155,7 +5397,14 @@
         
         // Восстановление состояния при загрузке страницы
         restoreFromSessionStorage();
+        updateTracksTable();
     </script>
+    
+    <!-- Footer Copy -->
+    <div class="app-footer">
+        <strong>© 2026 Максим, TrackGPX</strong>
+        <small>Сервис для сопровождения и визуализации ЗМУ на GPS-треках</small>
+    </div>
     
     <!-- Модальное окно статуса установки высот -->
     <div id="elevation-status-modal-overlay" class="modal-overlay">
